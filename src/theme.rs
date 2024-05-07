@@ -92,6 +92,15 @@ pub enum ColorScheme {
     Light,
 }
 
+impl From<terminal_colorsaurus::ColorScheme> for ColorScheme {
+    fn from(scheme: terminal_colorsaurus::ColorScheme) -> Self {
+        match scheme {
+            terminal_colorsaurus::ColorScheme::Dark => ColorScheme::Dark,
+            terminal_colorsaurus::ColorScheme::Light => ColorScheme::Light,
+        }
+    }
+}
+
 fn theme_from_detector(options: ThemeOptions, detector: &dyn ColorSchemeDetector) -> String {
     // Implementation note: This function is mostly pure (i.e. it has no side effects) for the sake of testing.
     // All the side effects (e.g. querying the terminal for its colors) are performed in the detector.
@@ -145,12 +154,9 @@ impl ColorSchemeDetector for TerminalColorSchemeDetector {
 
     fn detect(&self) -> Option<ColorScheme> {
         use terminal_colorsaurus::{color_scheme, QueryOptions};
-        let colors = color_scheme(QueryOptions::default()).ok()?;
-        if colors.is_light_on_dark() {
-            Some(ColorScheme::Dark)
-        } else {
-            Some(ColorScheme::Light)
-        }
+        color_scheme(QueryOptions::default())
+            .map(ColorScheme::from)
+            .ok()
     }
 }
 
